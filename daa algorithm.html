@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algorithm Explorer | Smart Delivery Packing</title>
+<style>
+:root{--bg:#f4f7fb;--ink:#17243a;--muted:#607089;--blue:#315efb;--line:#dce4f0;--card:#fff;--green:#13845b;--red:#c0392b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Arial,sans-serif}
+header{background:linear-gradient(120deg,#142b55,#315efb);color:white;padding:42px 7%}
+header h1{font-size:clamp(28px,4vw,42px);margin:0 0 8px}header p{max-width:850px;margin:0;color:#e4eaff}
+main{max-width:1120px;margin:28px auto;padding:0 18px}.intro,.panel,.result,.block{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 5px 20px #1b31500a}
+.block{box-shadow:none;background:#fbfcff;padding:18px}
+h2{margin:0 0 10px;font-size:22px}h3{margin:0 0 8px;font-size:18px}.muted{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+label{display:block;font-weight:700;margin:12px 0 6px}input,textarea{width:100%;padding:11px;border:1px solid #cbd6e5;border-radius:9px;font:inherit}textarea{min-height:180px;resize:vertical}
+button{border:0;border-radius:9px;padding:11px 17px;background:var(--blue);color:white;font-weight:700;cursor:pointer}button:hover{filter:brightness(.94)}
+.tabs{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0}.tabs button{background:#e7edff;color:#2446c7}.tabs button.active{background:var(--blue);color:white}
+.notice{padding:11px 14px;border-radius:9px;background:#fff5df;color:#815400;margin-top:12px;display:none}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.stat{background:#f2f6ff;padding:13px;border-radius:10px}.stat b{display:block;font-size:22px;color:#2446c7}
+table{border-collapse:collapse;width:100%;margin-top:12px}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line)}th{color:var(--muted)}
+ol{padding-left:22px}.tag{display:inline-block;background:#e9f8f1;color:var(--green);padding:3px 9px;border-radius:20px;font-size:12px;font-weight:bold}
+.tag.warn{background:#fff5df;color:#815400}
+.ok{color:var(--green);font-weight:bold}.bad{color:var(--red);font-weight:bold}
+pre{background:#0f1b33;color:#e6edff;padding:16px;border-radius:12px;overflow:auto;font:13px/1.55 Consolas,Menlo,monospace;margin:8px 0 0}
+.codehead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.copy{padding:6px 12px;font-size:12px;background:#e7edff;color:#2446c7}
+.scroll{overflow-x:auto}
+.dp td,.dp th{padding:5px 8px;text-align:center;border:1px solid var(--line);font-size:13px}
+.dp td.pick{background:#e9f8f1;font-weight:bold}
+.step-label{display:inline-block;background:var(--blue);color:#fff;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:bold;margin-bottom:8px}
+footer{text-align:center;color:var(--muted);padding:25px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><h1>Algorithm Explorer</h1><p>Smart Delivery Bag Packing — compare four algorithmic approaches to choose the most valuable parcels that fit within a delivery vehicle's weight limit.</p></header>
+<main>
+<section class="intro"><h2>1. Real-world problem</h2>
+<p>A delivery worker has a bag or vehicle with a fixed weight capacity. Each parcel has a weight and a delivery value/priority. The program chooses which whole parcels to carry so that total value is as high as possible without exceeding the capacity.</p>
+<p><b>Why it matters:</b> Delivery companies, warehouses and relief teams have limited space and need to prioritize what they transport.</p>
+<p><b>What this program computes:</b> The selected parcels, their total weight and total value, using Brute Force, Divide and Conquer, Dynamic Programming and Greedy methods. Greedy is a fast heuristic and may not give the optimal answer.</p></section>
+
+<section class="panel"><h2>2. Enter your data</h2><div class="grid"><div>
+<label for="capacity">Maximum capacity (weight units)</label><input id="capacity" type="number" min="1" max="10000" value="15">
+<label for="items">Parcels — one per line: name,weight,value</label>
+<textarea id="items">Laptop,5,60
+Books,4,40
+Camera,6,70
+Shoes,3,30
+Headphones,2,25</textarea>
+<p class="muted">Use positive whole-number weights and non-negative values. Example: Laptop,5,60</p>
+<button onclick="solve()">Validate &amp; Run Algorithms</button><div class="notice" id="error"></div>
+</div><div><h3>How to use</h3><ol><li>Enter the maximum carrying capacity.</li><li>Enter each parcel's name, weight and value.</li><li>Click Run Algorithms.</li><li>Below, you will see a comparison, then pick an algorithm tab to see its <b>explanation, step-by-step working on your data, source code and output</b>.</li></ol><p class="muted">For quick performance, use 20 or fewer parcels in this demo. Dynamic Programming uses a capacity-based table.</p></div></div></section>
+
+<div id="resultsArea" style="display:none">
+<section class="panel"><h2>3. Results overview</h2>
+<p class="muted">All four algorithms ran on your data. Exact methods always agree; Greedy may differ.</p>
+<div class="scroll" id="overview"></div></section>
+
+<section class="panel"><h2>4. Explanation, code &amp; output for each algorithm</h2><div class="tabs">
+<button class="active" data-algo="brute" onclick="showAlgo('brute')">Brute Force</button>
+<button data-algo="divide" onclick="showAlgo('divide')">Divide &amp; Conquer</button>
+<button data-algo="dp" onclick="showAlgo('dp')">Dynamic Programming</button>
+<button data-algo="greedy" onclick="showAlgo('greedy')">Greedy</button></div>
+<div id="explanation"></div>
+<div id="trace"></div>
+<div id="code"></div>
+<div id="output" class="result"></div></section>
+</div>
+</main><footer>Algorithm Explorer • 0/1 Knapsack • Educational project</footer>
+<script>
+let data=[],capacity=15,results={},extras={};
+
+const descriptions={
+brute:{title:"Brute Force — try every possible combination",steps:["Start with an empty selection.","For each parcel, consider two choices: include it or leave it out.","Continue until every parcel has been considered.","Reject combinations whose total weight exceeds capacity.","Choose the valid combination with the highest total value."],time:"O(2ⁿ × n)",space:"O(n)",note:"Exact method: checks all possible subsets, so it gives an optimal answer. It becomes slow as the number of parcels grows."},
+divide:{title:"Divide and Conquer — split the parcels into two groups",steps:["Split the parcel list into a left half and a right half.","Generate all possible valid subsets for each half.","Sort the right-half choices by weight and build the best value seen up to each weight.","For every left-half choice, find the best compatible right-half choice using binary search.","Combine the best pair without exceeding capacity."],time:"O(n × 2ⁿᐟ²) approximately",space:"O(2ⁿᐟ²)",note:"Exact meet-in-the-middle method. Splitting the input reduces the number of subsets generated at one time; it still uses exponential time."},
+dp:{title:"Dynamic Programming — reuse answers to smaller capacity problems",steps:["Create a table where each row represents the parcels considered so far.","Each column represents a capacity from 0 to the maximum.","For each parcel, compare leaving it out with including it (if it fits).","Store the larger value in the table cell.","Trace backwards through the table to identify the chosen parcels."],time:"O(n × W)",space:"O(n × W)",note:"Exact method for whole parcels. W is the integer capacity. It is efficient when capacity is not too large."},
+greedy:{title:"Greedy — choose the best value per weight first",steps:["Calculate value divided by weight for every parcel.","Sort parcels from highest ratio to lowest ratio.","Go through that order and take a parcel if it still fits.","Stop after checking all parcels."],time:"O(n log n)",space:"O(n)",note:"Fast heuristic for the 0/1 version. It is not guaranteed to find the optimal combination because a locally best choice can block a better overall combination."}
+};
+
+/* Python pseudocode shown to the user (same logic as the running JavaScript) */
+const sourceCode={
+brute:`def brute_force(items, W):
+    # Try EVERY combination of parcels (2^n subsets)
+    best_value, best_set = 0, []
+    n = len(items)
+
+    for mask in range(2 ** n):            # each number = one combination (bitmask)
+        weight, value, chosen = 0, 0, []
+        for i in range(n):
+            if mask & (1 << i):           # is parcel i in this combination?
+                weight += items[i].weight
+                value  += items[i].value
+                chosen.append(items[i])
+
+        if weight <= W and value > best_value:   # valid and better than best so far
+            best_value, best_set = value, chosen
+
+    return best_value, best_set`,
+divide:`def all_subsets(items):
+    result = [(0, 0, [])]                 # (weight, value, parcels)
+    for x in items:
+        result += [(w + x.weight, v + x.value, s + [x]) for (w, v, s) in result]
+    return result
+
+
+def divide_and_conquer(items, W):
+    # DIVIDE: split parcels into two halves
+    mid   = len(items) // 2
+    left  = [s for s in all_subsets(items[:mid]) if s[0] <= W]
+    right = sorted((s for s in all_subsets(items[mid:]) if s[0] <= W),
+                   key=lambda s: s[0])    # sort right side by weight
+
+    # best right subset seen up to each position
+    best_upto, best = [], None
+    for r in right:
+        if best is None or r[1] > best[1]:
+            best = r
+        best_upto.append(best)
+
+    # CONQUER: for each left subset, binary-search the best right subset that fits
+    answer = (0, 0, [])
+    for (lw, lv, ls) in left:
+        k = last_index_with_weight_at_most(right, W - lw)
+        if k >= 0:
+            rw, rv, rs = best_upto[k]
+            if lv + rv > answer[1]:       # COMBINE the two halves
+                answer = (lw + rw, lv + rv, ls + rs)
+        elif lv > answer[1]:
+            answer = (lw, lv, ls)
+
+    return answer[1], answer[2]
+
+
+def last_index_with_weight_at_most(sorted_subsets, limit):
+    lo, hi, idx = 0, len(sorted_subsets) - 1, -1
+    while lo <= hi:                       # binary search
+        mid = (lo + hi) // 2
+        if sorted_subsets[mid][0] <= limit:
+            idx, lo = mid, mid + 1
+        else:
+            hi = mid - 1
+    return idx`,
+dp:`def dynamic_programming(items, W):
+    n = len(items)
+    # table[i][w] = best value using first i parcels with capacity w
+    table = [[0] * (W + 1) for _ in range(n + 1)]
+
+    for i in range(1, n + 1):
+        for w in range(W + 1):
+            table[i][w] = table[i - 1][w]                 # option 1: skip parcel i
+            if items[i - 1].weight <= w:                  # option 2: take parcel i
+                take = items[i - 1].value + table[i - 1][w - items[i - 1].weight]
+                table[i][w] = max(table[i][w], take)
+
+    # trace back to find which parcels were taken
+    chosen, w = [], W
+    for i in range(n, 0, -1):
+        if table[i][w] != table[i - 1][w]:
+            chosen.append(items[i - 1])
+            w -= items[i - 1].weight
+    chosen.reverse()
+
+    return table[n][W], chosen`,
+greedy:`def greedy(items, W):
+    # sort by value-per-weight ratio, best first
+    ordered = sorted(items, key=lambda x: x.value / x.weight, reverse=True)
+
+    weight, value, chosen = 0, 0, []
+    for x in ordered:
+        if weight + x.weight <= W:        # take it only if it still fits
+            weight += x.weight
+            value  += x.value
+            chosen.append(x)
+
+    return value, chosen                  # fast, but NOT always optimal`
+};
+
+function parseInput(){
+ const cap=Number(document.getElementById('capacity').value);
+ if(!Number.isInteger(cap)||cap<1||cap>10000)throw Error("Capacity must be a whole number from 1 to 10,000.");
+ const lines=document.getElementById('items').value.trim().split(/\n/);if(!lines.length||!lines[0])throw Error("Enter at least one parcel.");
+ const arr=lines.map((line,i)=>{const p=line.split(',').map(x=>x.trim());if(p.length!==3||!p[0])throw Error("Line "+(i+1)+": use name,weight,value.");const w=Number(p[1]),v=Number(p[2]);if(!Number.isInteger(w)||w<=0||!Number.isFinite(v)||v<0)throw Error("Line "+(i+1)+": weight must be a positive whole number and value must be non-negative.");return {name:p[0],weight:w,value:v};});
+ if(arr.length>20)throw Error("Please enter no more than 20 parcels for this demo so the Brute Force comparison stays responsive.");return {cap,arr};
+}
+
+function brute(a,W){let best={value:0,weight:0,items:[]};const n=a.length;let total=1<<n,valid=0;for(let mask=0;mask<total;mask++){let w=0,v=0,items=[];for(let i=0;i<n;i++)if(mask&(1<<i)){w+=a[i].weight;v+=a[i].value;items.push(a[i]);}if(w<=W){valid++;if(v>best.value)best={value:v,weight:w,items};}}best.checked=total;best.valid=valid;return best;}
+function subsets(a){let out=[{weight:0,value:0,items:[]}];for(const x of a){const add=out.map(s=>({weight:s.weight+x.weight,value:s.value+x.value,items:s.items.concat(x)}));out=out.concat(add);}return out;}
+function divide(a,W){const mid=Math.floor(a.length/2),Lall=subsets(a.slice(0,mid)),Rall=subsets(a.slice(mid)),L=Lall.filter(x=>x.weight<=W),R=Rall.filter(x=>x.weight<=W).sort((x,y)=>x.weight-y.weight);let bestAt=[],best=null;for(const r of R){if(!best||r.value>best.value)best=r;bestAt.push(best);}let bestSol={value:0,weight:0,items:[]};for(const l of L){let lo=0,hi=R.length-1,idx=-1;while(lo<=hi){let m=(lo+hi)>>1;if(R[m].weight<=W-l.weight){idx=m;lo=m+1;}else hi=m-1;}if(idx>=0){const r=bestAt[idx],v=l.value+r.value;if(v>bestSol.value)bestSol={value:v,weight:l.weight+r.weight,items:l.items.concat(r.items)};}else if(l.value>bestSol.value)bestSol=l;}bestSol.info={mid,leftNames:a.slice(0,mid).map(x=>x.name),rightNames:a.slice(mid).map(x=>x.name),leftAll:Lall.length,rightAll:Rall.length,leftValid:L.length,rightValid:R.length};return bestSol;}
+function dp(a,W){const n=a.length,t=Array.from({length:n+1},()=>Array(W+1).fill(0));for(let i=1;i<=n;i++)for(let w=0;w<=W;w++){t[i][w]=t[i-1][w];if(a[i-1].weight<=w)t[i][w]=Math.max(t[i][w],a[i-1].value+t[i-1][w-a[i-1].weight]);}let w=W,items=[],path=[];for(let i=n;i>0;i--)if(t[i][w]!==t[i-1][w]){items.push(a[i-1]);path.push([i,w]);w-=a[i-1].weight;}items.reverse();return {value:t[n][W],weight:items.reduce((s,x)=>s+x.weight,0),items,table:t,path};}
+function greedy(a,W){const sorted=a.map((x,i)=>({...x,ratio:x.value/x.weight,index:i})).sort((x,y)=>y.ratio-x.ratio);let weight=0,value=0,items=[],log=[];for(const x of sorted){if(weight+x.weight<=W){weight+=x.weight;value+=x.value;items.push(x);log.push({x,taken:true,weight});}else log.push({x,taken:false,weight});}return {value,weight,items,log};}
+
+function solve(){const err=document.getElementById('error');try{const p=parseInput();capacity=p.cap;data=p.arr;results={brute:brute(data,capacity),divide:divide(data,capacity),dp:dp(data,capacity),greedy:greedy(data,capacity)};err.style.display='none';document.getElementById('resultsArea').style.display='block';renderOverview();showAlgo('brute');document.getElementById('resultsArea').scrollIntoView({behavior:'smooth'});}catch(e){err.textContent=e.message;err.style.display='block';}}
+
+function names(r){return r.items.length?r.items.map(x=>escapeHtml(x.name)).join(', '):'—';}
+function renderOverview(){
+ const opt=results.dp.value;
+ const rows=[['brute','Brute Force'],['divide','Divide & Conquer'],['dp','Dynamic Programming'],['greedy','Greedy']].map(([k,label])=>{const r=results[k];const isOpt=r.value===opt;return `<tr><td><b>${label}</b></td><td>${r.value}</td><td>${r.weight} / ${capacity}</td><td>${names(r)}</td><td>${descriptions[k].time}</td><td>${isOpt?'<span class="ok">Optimal ✓</span>':'<span class="bad">Not optimal ✗ (best is '+opt+')</span>'}</td></tr>`;}).join('');
+ let msg='';
+ if(results.greedy.value<opt)msg=`<p><b>Observation:</b> Greedy found value ${results.greedy.value}, but the optimal value is ${opt}. This shows that taking the best ratio first is not always the best overall choice.</p>`;
+ else msg=`<p><b>Observation:</b> For this input, Greedy happened to reach the optimal value ${opt}. Try other data to see cases where it fails.</p>`;
+ document.getElementById('overview').innerHTML=`<table><tr><th>Algorithm</th><th>Total value</th><th>Total weight</th><th>Selected parcels</th><th>Time</th><th>Result</th></tr>${rows}</table>${msg}`;
+}
+
+function traceHtml(key){
+ const r=results[key];
+ if(key==='brute'){
+  return `<p>With <b>${data.length}</b> parcels there are 2<sup>${data.length}</sup> = <b>${r.checked}</b> possible combinations. The algorithm checked all of them; <b>${r.valid}</b> were within the capacity of ${capacity}, and ${r.checked-r.valid} were rejected for being too heavy. The valid combination with the highest value (<b>${r.value}</b>) was chosen.</p>`;
+ }
+ if(key==='divide'){
+  const i=r.info;
+  return `<p><b>Left half</b> (${i.mid} parcels): ${i.leftNames.map(escapeHtml).join(', ')||'—'}<br><b>Right half</b> (${i.rightNames.length} parcels): ${i.rightNames.map(escapeHtml).join(', ')||'—'}</p>
+  <p>Left half produced ${i.leftAll} subsets (${i.leftValid} valid). Right half produced ${i.rightAll} subsets (${i.rightValid} valid). Instead of checking ${Math.pow(2,data.length)} full combinations, we combine two small lists (${i.leftValid} + ${i.rightValid}) using binary search.</p>`;
+ }
+ if(key==='dp'){
+  const t=r.table,n=data.length;
+  let html=`<p>The table has ${n+1} rows × ${capacity+1} columns = ${(n+1)*(capacity+1)} cells. The bottom-right cell is the answer: <b>${t[n][capacity]}</b>. Highlighted cells show where a parcel was taken during the trace-back.</p>`;
+  if(capacity<=25){
+   const picks=new Set(r.path.map(p=>p[0]+'-'+p[1]));
+   html+=`<div class="scroll"><table class="dp"><tr><th>Parcel \\ Capacity</th>${Array.from({length:capacity+1},(_,w)=>`<th>${w}</th>`).join('')}</tr>`;
+   for(let i=0;i<=n;i++){html+=`<tr><th>${i===0?'(none)':escapeHtml(data[i-1].name)}</th>${t[i].map((v,w)=>`<td class="${picks.has(i+'-'+w)?'pick':''}">${v}</td>`).join('')}</tr>`;}
+   html+='</table></div>';
+  }else html+='<p class="muted">The table is too wide to display (capacity above 25), but it is computed the same way.</p>';
+  return html;
+ }
+ if(key==='greedy'){
+  let html=`<p>Parcels sorted by value ÷ weight (highest first). A parcel is taken only if it still fits.</p><table><tr><th>Order</th><th>Parcel</th><th>Weight</th><th>Value</th><th>Ratio</th><th>Decision</th><th>Bag weight after</th></tr>`;
+  html+=r.log.map((e,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(e.x.name)}</td><td>${e.x.weight}</td><td>${e.x.value}</td><td>${e.x.ratio.toFixed(2)}</td><td>${e.taken?'<span class="ok">Taken</span>':'<span class="bad">Skipped (does not fit)</span>'}</td><td>${e.weight}</td></tr>`).join('');
+  html+='</table>';
+  if(r.value<results.dp.value)html+=`<p class="bad">Greedy total = ${r.value}, but the optimal total is ${results.dp.value}. Greedy missed a better combination.</p>`;
+  return html;
+ }
+ return '';
+}
+
+function showAlgo(key){
+ document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.algo===key));
+ const d=descriptions[key];
+ document.getElementById('explanation').innerHTML=`<div class="block"><span class="step-label">A. Explanation</span><h3>${d.title}</h3><ol>${d.steps.map(s=>`<li>${s}</li>`).join('')}</ol><p><b>Time complexity:</b> ${d.time} &nbsp; <b>Space complexity:</b> ${d.space}</p><p class="muted">${d.note}</p></div>`;
+ if(!results[key])return;
+ const r=results[key];
+ document.getElementById('trace').innerHTML=`<div class="block"><span class="step-label">B. How it worked on your data</span>${traceHtml(key)}</div>`;
+ document.getElementById('code').innerHTML=`<div class="block"><span class="step-label">C. Python pseudocode</span><div class="codehead"><h3 style="margin:0">${d.title.split(' — ')[0]} (Python pseudocode)</h3><button class="copy" onclick="copyCode('${key}',this)">Copy code</button></div><pre><code>${escapeHtml(sourceCode[key])}</code></pre><p class="muted" style="margin:10px 0 0">The page runs the same logic in JavaScript behind the scenes; this is the equivalent Python pseudocode.</p></div>`;
+ document.getElementById('output').innerHTML=`<span class="step-label">D. Output</span><br><span class="tag ${key==='greedy'&&r.value<results.dp.value?'warn':''}">${key==='greedy'?(r.value<results.dp.value?'Heuristic result (not optimal)':'Heuristic result (optimal here)'):'Optimal result'}</span><div class="stats"><div class="stat">Total value<b>${r.value}</b></div><div class="stat">Total weight<b>${r.weight} / ${capacity}</b></div><div class="stat">Parcels selected<b>${r.items.length}</b></div></div><h3>Selected parcels</h3>${r.items.length?`<table><tr><th>Parcel</th><th>Weight</th><th>Value</th></tr>${r.items.map(x=>`<tr><td>${escapeHtml(x.name)}</td><td>${x.weight}</td><td>${x.value}</td></tr>`).join('')}</table>`:'<p>No parcels selected.</p>'}`;
+}
+function copyCode(key,btn){navigator.clipboard.writeText(sourceCode[key]).then(()=>{btn.textContent='Copied ✓';setTimeout(()=>btn.textContent='Copy code',1500);}).catch(()=>{btn.textContent='Copy failed';});}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+</script></body></html>
