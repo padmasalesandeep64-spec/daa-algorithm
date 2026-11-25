@@ -5,7 +5,7 @@ items = [
     ("Shoes", 3, 30),
     ("Headphones", 2, 25)
 ]
-capacity = 15
+capacity = 17
 
 def generate_subsets(items):
     result = [(0, 0, [])]
